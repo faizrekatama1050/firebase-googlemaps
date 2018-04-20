@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        #map{
+            height: 500px;
+            width: 100%;
+            background-color: grey;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    Information <input type="text" id="information">
+    <button type="button" id="submit">SUBMIT TO FIREBASE</button>
+
+    <!-- DIBAWAH INI JAVASCRIPTNYA -->
+    <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqIy-vX5tDUpnN5EUuIVG5fNeEuHWm3q4&callback=initMap"></script>
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyByZIbMeOlaMthkuWBv08TH_BoXnBO8gnw",
+            authDomain: "belajar-map-a9aea.firebaseapp.com",
+            databaseURL: "https://belajar-map-a9aea.firebaseio.com",
+            projectId: "belajar-map-a9aea",
+            storageBucket: "belajar-map-a9aea.appspot.com",
+            messagingSenderId: "854504402721"
+        };
+        firebase.initializeApp(config);
+        var db              = firebase.database();
+        var dataRef         = db.ref('polygon');
+
+        dataRef.on('value', updateInfo, showErr);
+
+        var arrayPolygon = [];
+        function updateInfo(data){
+            data.forEach(function(datamarker) {
+                arrayPolygon.push(createPolygon(datamarker.val().geometry.points));
+                console.log(datamarker.val().information);
+            });
+        }
+
+        function showErr(err){
+            console.log(err);
+        }
+
+        var map             = null;
+        var center          = {lat:-5.367284, lng:105.244935};
+        var coords          = [];
+        var markers         = [];
+        function initMap(){
+            map = new google.maps.Map(document.getElementById('map'),{
+                zoom: 11,
+                center: center
+            });
+
+            map.addListener("click", function(e){
+                var tempCoord = {
+                    lat: e.latLng.lat(), 
+                    lng: e.latLng.lng()
+                };
+                coords.push(tempCoord);
+                markers.push(createMarker(tempCoord));
+            });
+        }
+
+        document.getElementById("submit").addEventListener("click", function(){
+            var points = {points: coords};
+            var information = document.getElementById("information").value;
+            arrayPolygon.forEach(function(data){
+                data.setMap(null);
+            });
+            markers.forEach(function(data){
+                data.setMap(null);
+            });
+            dataRef.push(
+                {
+                    information: information,
+                    geometry: points
+                }
+            );
+            coords = [];
+            
+        });
+
+        function createMarker(coords){
+            var marker = new google.maps.Marker({
+                position: coords,
+                map: map,
+            });
+            return marker;
+        }
+
+        function createPolygon(coords){
+            var tempPoly = new google.maps.Polygon({
+                paths: coords,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35
+            });
+            tempPoly.setMap(map);
+            return tempPoly;
+        }
+    </script>
+</body>
+</html>
