@@ -19,11 +19,20 @@ function getData(data) {
     var marker = data.val();
     kunci = Object.keys(data.val());
     var content = "";
+    var markers = [];
+
     for (var i = 0; i < kunci.length; i++) {
         // content += marker[kunci[i]].coordinate.lat + "<br>";
         var position = { lat: marker[kunci[i]].coordinate.lat, lng: marker[kunci[i]].coordinate.lng };
-        createMarker(position, null, marker[kunci[i]].info).setMap(map);
+        var newMarker = createMarker(position, null, marker[kunci[i]].info);
+        markers.push(newMarker);
     }
+    console.log(markers);
+    var markerCluster = new MarkerClusterer(map, markers,
+        {
+          imagePath: 'images/m'
+        }
+      );
     // document.getElementById('info').innerHTML = content;
 }
 function showError(err) {
